@@ -6,10 +6,13 @@ import ListaClientes from '../pages/ListaClientes'
 import DetalleCliente from '../pages/DetalleCliente'
 import ErrorPage from '../pages/ErrorPage'
 import RutaProtegida from '../components/RutaProtegida'
+
 const AppRoutes = () => {
   return (
     <Routes>
 
+
+      
       <Route path="/login" element={<Login />} />
       <Route
         path="/"

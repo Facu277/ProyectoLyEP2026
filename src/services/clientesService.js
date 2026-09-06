@@ -1,5 +1,10 @@
 import axios from "axios";
 
+import {
+    validarCliente
+} from "../../shared/validaciones.js";
+
+
 const URL = "https://fakestoreapi.com/users";
 
 const STORAGE_KEY = "clientes";
@@ -19,6 +24,8 @@ const normalizarCliente = (cliente) => {
 
         username: cliente.username,
 
+        // Por ahora la contraseña se guarda
+        // sin encriptación.
         password: cliente.password,
 
         name: {
@@ -27,15 +34,19 @@ const normalizarCliente = (cliente) => {
         },
 
         // Eliminamos los guiones del teléfono.
-        phone: cliente.phone?.replace(/-/g, ""),
+        phone:
+            cliente.phone?.replace(/[-\s]/g, ""),
 
-        // Todo cliente nuevo comienza activo.
-        is_active: cliente.is_active ?? true,
+        // Si no existe estado, comienza activo.
+        is_active:
+            cliente.is_active ?? true,
 
-        // Identificamos al usuario como CLIENTE.
+        // Identificamos siempre al usuario
+        // como CLIENTE.
         tipo: "CLIENTE",
 
-        // No guardamos geolocation.
+        // Se conserva la dirección,
+        // pero NO se guarda geolocation.
         address: {
             city: cliente.address?.city,
             street: cliente.address?.street,
@@ -68,9 +79,14 @@ const leerClientesLocal = () => {
     const clientesGuardados =
         localStorage.getItem(STORAGE_KEY);
 
+
+    // Si todavía no hay clientes guardados,
+    // devolvemos una lista vacía.
     if (!clientesGuardados) {
+
         return [];
     }
+
 
     try {
 
@@ -94,31 +110,33 @@ const leerClientesLocal = () => {
 
 const inicializarClientes = async () => {
 
-    // Buscamos primero clientes guardados
-    // en localStorage.
+    // Primero verificamos si existen clientes
+    // guardados en localStorage.
     const clientesLocales =
         leerClientesLocal();
 
 
-    // Si ya existen clientes guardados,
-    // utilizamos esos datos.
+    // Si existen, trabajamos con esos datos
+    // y no volvemos a consultar FakeStoreAPI.
     if (clientesLocales.length > 0) {
 
         return clientesLocales;
     }
 
 
-    // Si todavía no existen clientes,
-    // los obtenemos desde FakeStoreAPI.
+    // ======================================
+    // PRIMERA CARGA DESDE FAKESTOREAPI
+    // ======================================
+
     const respuesta =
         await axios.get(URL);
 
 
-    // Normalizamos los usuarios obtenidos
-    // desde la API.
+    // Normalizamos todos los usuarios de la API.
     const clientes =
         respuesta.data.map(
-            cliente => normalizarCliente(cliente)
+            cliente =>
+                normalizarCliente(cliente)
         );
 
 
@@ -131,8 +149,8 @@ const inicializarClientes = async () => {
 
 
 // ==========================================
-// OBTENER TODOS LOS CLIENTES
 // READ
+// OBTENER TODOS LOS CLIENTES
 // ==========================================
 
 const obtenerClientes = async () => {
@@ -142,8 +160,8 @@ const obtenerClientes = async () => {
 
 
 // ==========================================
-// OBTENER CLIENTE POR ID
 // READ
+// OBTENER CLIENTE POR ID
 // ==========================================
 
 const obtenerClientePorId = async (id) => {
@@ -151,7 +169,9 @@ const obtenerClientePorId = async (id) => {
     const clientes =
         await inicializarClientes();
 
-    const idCliente = Number(id);
+
+    const idCliente =
+        Number(id);
 
 
     return clientes.find(
@@ -162,42 +182,132 @@ const obtenerClientePorId = async (id) => {
 
 
 // ==========================================
-// CREAR CLIENTE
 // CREATE
+// CREAR CLIENTE
 // ==========================================
 
 const crearCliente = async (cliente) => {
+
+    // ======================================
+    // VALIDAR DATOS
+    // ======================================
+
+    /*
+        Al registrar un cliente nuevo:
+
+        - Todos los campos son obligatorios.
+        - La contraseña es obligatoria.
+        - La contraseña debe cumplir las reglas.
+    */
+
+    const resultadoValidacion =
+        validarCliente(
+            cliente,
+            {
+                validarPassword: true
+            }
+        );
+
+
+    // ======================================
+    // VERIFICAR ERRORES
+    // ======================================
+
+    if (!resultadoValidacion.valid) {
+
+        console.error(
+            "Errores de validación:",
+            resultadoValidacion.errors
+        );
+
+
+        const error =
+            new Error(
+                "Los datos del cliente no son válidos."
+            );
+
+
+        /*
+            Guardamos los errores específicos.
+
+            Esto permitirá que posteriormente
+            React pueda mostrar, por ejemplo:
+
+            errors.email
+            errors.username
+            errors.password
+            errors.phone
+        */
+        error.validationErrors =
+            resultadoValidacion.errors;
+
+
+        throw error;
+    }
+
+
+    // Datos limpios y validados.
+    const clienteValidado =
+        resultadoValidacion.data;
+
+
+    // ======================================
+    // OBTENER LISTA ACTUAL
+    // ======================================
 
     const clientes =
         await inicializarClientes();
 
 
-    // Generamos un ID automáticamente.
+    // ======================================
+    // GENERAR NUEVO ID
+    // ======================================
+
     const ultimoId =
         clientes.length > 0
+
             ? Math.max(
-                ...clientes.map(cliente => cliente.id)
+                ...clientes.map(
+                    cliente =>
+                        Number(cliente.id)
+                )
             )
+
             : 0;
 
+
+    const nuevoId =
+        ultimoId + 1;
+
+
+    // ======================================
+    // CREAR CLIENTE
+    // ======================================
 
     const nuevoCliente =
         normalizarCliente({
 
-            ...cliente,
+            ...clienteValidado,
 
-            id: ultimoId + 1,
+            // ID generado automáticamente.
+            id: nuevoId,
 
-            // Siempre se crea activo.
+            // Todo cliente nuevo comienza activo.
             is_active: true
         });
 
 
-    // Agregamos el cliente a la lista.
+    // ======================================
+    // AGREGAR A LA LISTA
+    // ======================================
+
     clientes.push(nuevoCliente);
 
 
-    // Persistimos la lista modificada.
+    // ======================================
+    // GUARDAR EN LOCALSTORAGE
+    // ======================================
+
     guardarClientes(clientes);
 
 
@@ -206,8 +316,8 @@ const crearCliente = async (cliente) => {
 
 
 // ==========================================
-// ACTUALIZAR CLIENTE
 // UPDATE
+// ACTUALIZAR CLIENTE
 // ==========================================
 
 const actualizarCliente = async (
@@ -215,14 +325,22 @@ const actualizarCliente = async (
     datosActualizados
 ) => {
 
+    // ======================================
+    // OBTENER CLIENTES
+    // ======================================
+
     const clientes =
         await inicializarClientes();
+
 
     const idCliente =
         Number(id);
 
 
-    // Verificamos que el cliente exista.
+    // ======================================
+    // BUSCAR CLIENTE
+    // ======================================
+
     const clienteExistente =
         clientes.find(
             cliente =>
@@ -238,36 +356,172 @@ const actualizarCliente = async (
     }
 
 
+    // ======================================
+    // COMBINAR DATOS
+    // ======================================
+
+    /*
+        Conservamos toda la información anterior
+        y reemplazamos solamente los campos que
+        fueron modificados.
+
+        Esto permite modificaciones parciales.
+    */
+
+    const clienteModificado = {
+
+        ...clienteExistente,
+
+        ...datosActualizados,
+
+
+        // Combinamos nombre por separado.
+        name: {
+
+            ...clienteExistente.name,
+
+            ...(datosActualizados.name || {})
+        },
+
+
+        // Combinamos dirección por separado.
+        address: {
+
+            ...clienteExistente.address,
+
+            ...(datosActualizados.address || {})
+        },
+
+
+        /*
+            La contraseña NO se modifica desde
+            esta operación.
+
+            Se conserva la contraseña actual.
+
+            Más adelante puede crearse una función
+            cambiarPassword().
+        */
+        password:
+            clienteExistente.password,
+
+
+        // El ID tampoco puede modificarse.
+        id:
+            idCliente,
+
+
+        // Conservamos el estado actual.
+        is_active:
+            clienteExistente.is_active,
+
+
+        // Siempre continúa siendo CLIENTE.
+        tipo:
+            "CLIENTE"
+    };
+
+
+    // ======================================
+    // VALIDAR DATOS
+    // ======================================
+
+    /*
+        IMPORTANTE:
+
+        En UPDATE no volvemos a validar la
+        contraseña.
+
+        Esto permite modificar los clientes que
+        vinieron originalmente de FakeStoreAPI,
+        cuyas contraseñas pueden no cumplir
+        nuestras reglas actuales.
+    */
+
+    const resultadoValidacion =
+        validarCliente(
+            clienteModificado,
+            {
+                validarPassword: false
+            }
+        );
+
+
+    // ======================================
+    // VERIFICAR ERRORES
+    // ======================================
+
+    if (!resultadoValidacion.valid) {
+
+        console.error(
+            "Errores de validación:",
+            resultadoValidacion.errors
+        );
+
+
+        const error =
+            new Error(
+                "Los datos actualizados no son válidos."
+            );
+
+
+        error.validationErrors =
+            resultadoValidacion.errors;
+
+
+        throw error;
+    }
+
+
+    // ======================================
+    // ACTUALIZAR LISTA
+    // ======================================
+
     const nuevosClientes =
         clientes.map(cliente => {
 
+            // Si no es el cliente buscado,
+            // lo devolvemos sin modificar.
             if (cliente.id !== idCliente) {
 
                 return cliente;
             }
 
 
+            // Cliente actualizado.
             return normalizarCliente({
 
-                ...cliente,
+                ...resultadoValidacion.data,
 
-                ...datosActualizados,
+                // El ID nunca cambia.
+                id:
+                    idCliente,
 
-                name: {
-                    ...cliente.name,
-                    ...(datosActualizados.name || {})
-                },
+                // La contraseña se conserva.
+                password:
+                    clienteExistente.password,
 
-                address: {
-                    ...cliente.address,
-                    ...(datosActualizados.address || {})
-                }
+                // El estado se conserva.
+                is_active:
+                    clienteExistente.is_active,
+
+                // El tipo nunca cambia.
+                tipo:
+                    "CLIENTE"
             });
         });
 
 
+    // ======================================
+    // GUARDAR CAMBIOS
+    // ======================================
+
     guardarClientes(nuevosClientes);
 
+
+    // ======================================
+    // DEVOLVER CLIENTE ACTUALIZADO
+    // ======================================
 
     return nuevosClientes.find(
         cliente =>
@@ -277,18 +531,27 @@ const actualizarCliente = async (
 
 
 // ==========================================
-// DESHABILITAR CLIENTE
 // DELETE LÓGICO
+// DESHABILITAR CLIENTE
 // ==========================================
 
 const eliminarCliente = async (id) => {
 
+    // ======================================
+    // OBTENER CLIENTES
+    // ======================================
+
     const clientes =
         await inicializarClientes();
+
 
     const idCliente =
         Number(id);
 
+
+    // ======================================
+    // BUSCAR CLIENTE
+    // ======================================
 
     const clienteExistente =
         clientes.find(
@@ -305,25 +568,40 @@ const eliminarCliente = async (id) => {
     }
 
 
+    // ======================================
+    // DESHABILITAR CLIENTE
+    // ======================================
+
     const nuevosClientes =
         clientes.map(cliente => {
 
             if (cliente.id === idCliente) {
 
                 return {
+
                     ...cliente,
 
                     // Baja lógica.
+                    // El usuario continúa almacenado.
                     is_active: false
                 };
             }
+
 
             return cliente;
         });
 
 
+    // ======================================
+    // GUARDAR CAMBIOS
+    // ======================================
+
     guardarClientes(nuevosClientes);
 
+
+    // ======================================
+    // DEVOLVER CLIENTE DESHABILITADO
+    // ======================================
 
     return nuevosClientes.find(
         cliente =>
@@ -349,5 +627,4 @@ export default {
     actualizarCliente,
 
     eliminarCliente
-
 };

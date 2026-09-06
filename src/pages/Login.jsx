@@ -5,12 +5,15 @@ import useAutorizaciones from '../hooks/useAutorizaciones'
 import AutorizacionesService from '../services/autorizacionesServices'
 
 import { inicializarUsuarios } from '../services/inicializarUsuariosService'
-import { probarCrearCliente } from '../test/probarCrearCliente'
+import { probarActualizarCliente, probarEliminarCliente, probarObtenerClientePorId } from '../test/testCliente'
 
 
 
-//IMPORTANTE: Borrar esta funcion que es un test para probar la creacion de un cliente
-probarCrearCliente();
+//IMPORTANTE: funciones test para probar El CRUD de un cliente
+//probarCrearCliente();
+//probarObtenerClientePorId(1);
+//probarActualizarCliente(1);
+//probarEliminarCliente(1);
 
 
 // IMPORTANTE: Borrar las console.log de la funcion ya que muestra todas las listas en la consola del navegador.

@@ -1,0 +1,1 @@
+export const SECTORES = Object.freeze(['GERENTE', 'SOPORTE']);

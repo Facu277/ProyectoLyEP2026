@@ -4,6 +4,19 @@ import { useNavigate } from 'react-router-dom'
 import useAutorizaciones from '../hooks/useAutorizaciones'
 import AutorizacionesService from '../services/autorizacionesServices'
 
+import { inicializarUsuarios } from '../services/inicializarUsuariosService'
+import { probarCrearCliente } from '../test/probarCrearCliente'
+
+
+
+//IMPORTANTE: Borrar esta funcion que es un test para probar la creacion de un cliente
+probarCrearCliente();
+
+
+// IMPORTANTE: Borrar las console.log de la funcion ya que muestra todas las listas en la consola del navegador.
+inicializarUsuarios();
+
+// --------------------------
 const Login = () => {
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')

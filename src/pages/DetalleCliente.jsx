@@ -1,3 +1,4 @@
+import useAutorizaciones from "../hooks/useAutorizaciones";
 import '../css/detallecliente.css'
 import { useEffect, useState } from "react";
 import { useParams, useNavigate } from "react-router-dom";
@@ -5,7 +6,7 @@ import { useParams, useNavigate } from "react-router-dom";
 const DetalleCliente = () => {
  const { id } = useParams();
   const navigate = useNavigate();
-  const role = localStorage.getItem("role");
+  const { esGerencia, rol } = useAutorizaciones();
 
   const [cliente, setCliente] = useState(null);
   const [mensaje, setMensaje] = useState("");
@@ -43,7 +44,7 @@ const DetalleCliente = () => {
   return (
     <div className="detalle-cliente">
       <h1>Ficha del Cliente</h1>
-      <p>Rol actual: {role}</p>
+      <p>Rol actual: {rol}</p>
 
       {mensaje && <p className = 'mensaje-eliminado'>{mensaje}</p>}
 
@@ -92,8 +93,9 @@ const DetalleCliente = () => {
         <strong>Contraseña:</strong> {cliente.password}
       </p>
 
-      {role?.trim() === "Gerencia" && (
-        <button className='btn-eliminar'onClick={eliminarCliente}>
+      {/* Condicional utilizando el helper del contexto global de autenticación */}
+      {esGerencia && (
+        <button className='btn-eliminar' onClick={eliminarCliente}>
           Eliminar Cliente
         </button>
       )}

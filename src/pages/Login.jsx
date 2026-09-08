@@ -45,10 +45,10 @@ const Login = () => {
       sector
     )
     if (!usuario) {
-     alert('Verifique los datos')
+      alert('Verifique los datos')
       return
     }
-    localStorage.setItem("role", usuario.sector)
+    // Se elimina la escritura directa a localStorage ("role")
     setAdmin({
       nombre: usuario.nombre,
       email: usuario.email,

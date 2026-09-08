@@ -34,12 +34,14 @@ const DetalleCliente = () => {
       );
 
       if (respuesta.ok) {
-        setMensaje("Cliente eliminado correctamente");
+  setMensaje("Cliente eliminado correctamente");
 
-        setTimeout(() => {
-          navigate("/clientes");
-        }, 2000);
-      }
+  setTimeout(() => {
+    navigate("/clientes");
+  }, 2000);
+} else {
+  setMensaje("No se pudo eliminar el cliente");
+}
     } catch (error) {
       setMensaje("Error al eliminar cliente");
     }

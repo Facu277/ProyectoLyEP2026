@@ -10,12 +10,19 @@ const DetalleCliente = () => {
 
   const [cliente, setCliente] = useState(null);
   const [mensaje, setMensaje] = useState("");
+  const [error, setError] = useState("");
 
   useEffect(() => {
-    fetch(`https://fakestoreapi.com/users/${id}`)
-      .then((res) => res.json())
-      .then((data) => setCliente(data));
-  }, [id]);
+  fetch(`https://fakestoreapi.com/users/${id}`)
+    .then((res) => {
+      if (!res.ok) {
+        throw new Error("No se pudo cargar el cliente");
+      }
+      return res.json();
+    })
+    .then((data) => setCliente(data))
+    .catch(() => setError("No se pudo cargar la información del cliente"));
+}, [id]);
 
   const eliminarCliente = async () => {
     try {
@@ -37,6 +44,9 @@ const DetalleCliente = () => {
       setMensaje("Error al eliminar cliente");
     }
   };
+  if (error) {
+  return <h2>{error}</h2>;
+}
   if (!cliente) {
     return <h2>Cargando cliente...</h2>;
   }

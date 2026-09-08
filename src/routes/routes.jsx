@@ -22,7 +22,7 @@ const AppRoutes = () => {
       <Route
         path="/clientes"
         element={
-          <RutaProtegida>
+          <RutaProtegida rolesPermitidos={['Gerencia', 'Soporte']}>
             <ListaClientes />
           </RutaProtegida>
         }
@@ -30,7 +30,7 @@ const AppRoutes = () => {
       <Route
         path="/clientes/:id"
         element={
-         <RutaProtegida>
+         <RutaProtegida rolesPermitidos={['Gerencia', 'Soporte']}>
           <DetalleCliente />
          </RutaProtegida>
       }

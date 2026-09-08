@@ -4,6 +4,22 @@ import { useNavigate } from 'react-router-dom'
 import useAutorizaciones from '../hooks/useAutorizaciones'
 import AutorizacionesService from '../services/autorizacionesServices'
 
+import { inicializarUsuarios } from '../services/inicializarUsuariosService'
+import { probarActualizarCliente, probarEliminarCliente, probarObtenerClientePorId } from '../test/testCliente'
+
+
+
+//IMPORTANTE: funciones test para probar El CRUD de un cliente
+//probarCrearCliente();
+//probarObtenerClientePorId(1);
+//probarActualizarCliente(1);
+//probarEliminarCliente(1);
+
+
+// IMPORTANTE: Borrar las console.log de la funcion ya que muestra todas las listas en la consola del navegador.
+inicializarUsuarios();
+
+// --------------------------
 const Login = () => {
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')

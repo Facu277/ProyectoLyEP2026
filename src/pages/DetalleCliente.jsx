@@ -66,7 +66,8 @@ const DetalleCliente = () => {
 
       <p>
         <strong>Nombre:</strong>{" "}
-        {cliente.name.firstname} {cliente.name.lastname}
+        {cliente.name?.firstname || "Sin nombre"}{" "}
+{cliente.name?.lastname || ""}
       </p>
 
       <p>
@@ -80,20 +81,20 @@ const DetalleCliente = () => {
       <h2>Dirección</h2>
 
       <p>
-        <strong>Calle:</strong> {cliente.address.street}
+      <strong>Calle:</strong> {cliente.address?.street || "Sin datos"}
       </p>
 
       <p>
-        <strong>Número:</strong> {cliente.address.number}
+      <strong>Número:</strong> {cliente.address?.number || "Sin datos"}
       </p>
 
-      <p>
-        <strong>Código Postal:</strong> {cliente.address.zipcode}
-      </p>
+       <p>
+       <strong>Código Postal:</strong> {cliente.address?.zipcode || "Sin datos"}
+       </p>
 
-      <p>
-        <strong>Ciudad:</strong> {cliente.address.city}
-      </p>
+<p>
+  <strong>Ciudad:</strong> {cliente.address?.city || "Sin datos"}
+</p>
 
       <h2>Credenciales</h2>
 

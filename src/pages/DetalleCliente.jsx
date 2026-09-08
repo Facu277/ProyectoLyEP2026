@@ -25,6 +25,13 @@ const DetalleCliente = () => {
 }, [id]);
 
   const eliminarCliente = async () => {
+    const confirmar = window.confirm(
+    "¿Está seguro de que desea eliminar este cliente?"
+    );
+
+    if (!confirmar) {
+    return;
+    }
     try {
       const respuesta = await fetch(
         `https://fakestoreapi.com/users/${id}`,
@@ -67,7 +74,7 @@ const DetalleCliente = () => {
       <p>
         <strong>Nombre:</strong>{" "}
         {cliente.name?.firstname || "Sin nombre"}{" "}
-{cliente.name?.lastname || ""}
+        {cliente.name?.lastname || ""}
       </p>
 
       <p>
@@ -92,9 +99,9 @@ const DetalleCliente = () => {
        <strong>Código Postal:</strong> {cliente.address?.zipcode || "Sin datos"}
        </p>
 
-<p>
-  <strong>Ciudad:</strong> {cliente.address?.city || "Sin datos"}
-</p>
+      <p>
+      <strong>Ciudad:</strong> {cliente.address?.city || "Sin datos"}
+      </p>
 
       <h2>Credenciales</h2>
 

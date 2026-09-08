@@ -89,10 +89,6 @@ const DetalleCliente = () => {
         <strong>Usuario:</strong> {cliente.username}
       </p>
 
-      <p>
-        <strong>Contraseña:</strong> {cliente.password}
-      </p>
-
       {/* Condicional utilizando el helper del contexto global de autenticación */}
       {esGerencia && (
         <button className='btn-eliminar' onClick={eliminarCliente}>

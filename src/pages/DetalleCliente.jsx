@@ -10,14 +10,28 @@ const DetalleCliente = () => {
 
   const [cliente, setCliente] = useState(null);
   const [mensaje, setMensaje] = useState("");
+  const [error, setError] = useState("");
 
   useEffect(() => {
-    fetch(`https://fakestoreapi.com/users/${id}`)
-      .then((res) => res.json())
-      .then((data) => setCliente(data));
-  }, [id]);
+  fetch(`https://fakestoreapi.com/users/${id}`)
+    .then((res) => {
+      if (!res.ok) {
+        throw new Error("No se pudo cargar el cliente");
+      }
+      return res.json();
+    })
+    .then((data) => setCliente(data))
+    .catch(() => setError("No se pudo cargar la información del cliente"));
+}, [id]);
 
   const eliminarCliente = async () => {
+    const confirmar = window.confirm(
+    "¿Está seguro de que desea eliminar este cliente?"
+    );
+
+    if (!confirmar) {
+    return;
+    }
     try {
       const respuesta = await fetch(
         `https://fakestoreapi.com/users/${id}`,
@@ -27,16 +41,21 @@ const DetalleCliente = () => {
       );
 
       if (respuesta.ok) {
-        setMensaje("Cliente eliminado correctamente");
+  setMensaje("Cliente eliminado correctamente");
 
-        setTimeout(() => {
-          navigate("/clientes");
-        }, 2000);
-      }
+  setTimeout(() => {
+    navigate("/clientes");
+  }, 2000);
+} else {
+  setMensaje("No se pudo eliminar el cliente");
+}
     } catch (error) {
       setMensaje("Error al eliminar cliente");
     }
   };
+  if (error) {
+  return <h2>{error}</h2>;
+}
   if (!cliente) {
     return <h2>Cargando cliente...</h2>;
   }
@@ -54,7 +73,8 @@ const DetalleCliente = () => {
 
       <p>
         <strong>Nombre:</strong>{" "}
-        {cliente.name.firstname} {cliente.name.lastname}
+        {cliente.name?.firstname || "Sin nombre"}{" "}
+        {cliente.name?.lastname || ""}
       </p>
 
       <p>
@@ -68,29 +88,25 @@ const DetalleCliente = () => {
       <h2>Dirección</h2>
 
       <p>
-        <strong>Calle:</strong> {cliente.address.street}
+      <strong>Calle:</strong> {cliente.address?.street || "Sin datos"}
       </p>
 
       <p>
-        <strong>Número:</strong> {cliente.address.number}
+      <strong>Número:</strong> {cliente.address?.number || "Sin datos"}
       </p>
 
-      <p>
-        <strong>Código Postal:</strong> {cliente.address.zipcode}
-      </p>
+       <p>
+       <strong>Código Postal:</strong> {cliente.address?.zipcode || "Sin datos"}
+       </p>
 
       <p>
-        <strong>Ciudad:</strong> {cliente.address.city}
+      <strong>Ciudad:</strong> {cliente.address?.city || "Sin datos"}
       </p>
 
       <h2>Credenciales</h2>
 
       <p>
         <strong>Usuario:</strong> {cliente.username}
-      </p>
-
-      <p>
-        <strong>Contraseña:</strong> {cliente.password}
       </p>
 
       {/* Condicional utilizando el helper del contexto global de autenticación */}

@@ -1,60 +1,150 @@
-import { createContext, useState, useEffect } from 'react'
+import {
+    createContext,
+    useEffect,
+    useState
+} from "react";
 
-export const AutorizacionesContext = createContext()
+export const AutorizacionesContext =
+    createContext(null);
 
-const AutorizacionesProvider = ({ children }) => {
-  const [admin, setAdmin] = useState(() => {
-    try {
-      const adminGuardado = localStorage.getItem('admin')
-      if (adminGuardado) {
-        return JSON.parse(adminGuardado)
-      }
-    } catch (e) {
-      console.error("Error al parsear el usuario almacenado en localStorage", e)
-      localStorage.removeItem('admin')
-    }
-    return null
-  })
 
-  useEffect(() => {
-    if (admin) {
-      localStorage.setItem('admin', JSON.stringify(admin))
-    } else {
-      localStorage.removeItem('admin')
-    }
-  }, [admin])
+const AutorizacionesProvider = ({
+    children
+}) => {
 
-  const cerrarSesion = () => {
-    setAdmin(null)
-  }
+    // ==========================================
+    // ADMINISTRADOR EN SESIÓN
+    // ==========================================
 
-  // Helpers de rol del usuario activo
-  const rol = admin?.sector || null
-  const esGerencia = rol === 'Gerencia'
-  const esSoporte = rol === 'Soporte'
+    const [admin, setAdmin] = useState(() => {
 
-  // Función para validar si el rol actual está incluido en una lista de roles autorizados
-  const tieneRol = (rolesPermitidos = []) => {
-    if (!admin) return false
-    if (rolesPermitidos.length === 0) return true
-    return rolesPermitidos.includes(admin.sector)
-  }
+        try {
 
-  return (
-    <AutorizacionesContext.Provider
-      value={{ 
-        admin, 
-        setAdmin, 
-        cerrarSesion, 
-        rol, 
-        esGerencia, 
-        esSoporte, 
-        tieneRol 
-      }}
-    >
-      {children}
-    </AutorizacionesContext.Provider>
-  )
-}
+            const adminGuardado =
+                localStorage.getItem("admin");
 
-export default AutorizacionesProvider
+
+            if (adminGuardado) {
+
+                return JSON.parse(
+                    adminGuardado
+                );
+            }
+
+        } catch (error) {
+
+            console.error(
+                "Error al leer el administrador guardado:",
+                error
+            );
+
+            localStorage.removeItem(
+                "admin"
+            );
+        }
+
+
+        return null;
+    });
+
+
+    // ==========================================
+    // PERSISTIR SESIÓN
+    // ==========================================
+
+    useEffect(() => {
+
+        if (admin) {
+
+            localStorage.setItem(
+                "admin",
+                JSON.stringify(admin)
+            );
+
+        } else {
+
+            localStorage.removeItem(
+                "admin"
+            );
+        }
+
+    }, [admin]);
+
+
+    // ==========================================
+    // CERRAR SESIÓN
+    // ==========================================
+
+    const cerrarSesion = () => {
+
+        setAdmin(null);
+    };
+
+
+    // ==========================================
+    // ROL / SECTOR
+    // ==========================================
+
+    const rol =
+        admin?.sector ?? null;
+
+
+    // Deben coincidir exactamente con
+    // SECTORES = ["GERENTE", "SOPORTE"].
+    const esGerencia =
+        rol === "GERENTE";
+
+    const esSoporte =
+        rol === "SOPORTE";
+
+
+    // ==========================================
+    // VERIFICAR PERMISOS
+    // ==========================================
+
+    const tieneRol = (
+        rolesPermitidos = []
+    ) => {
+
+        if (!admin) {
+
+            return false;
+        }
+
+
+        if (
+            rolesPermitidos.length === 0
+        ) {
+
+            return true;
+        }
+
+
+        return rolesPermitidos.includes(
+            admin.sector
+        );
+    };
+
+
+    return (
+
+        <AutorizacionesContext.Provider
+            value={{
+                admin,
+                setAdmin,
+                cerrarSesion,
+                rol,
+                esGerencia,
+                esSoporte,
+                tieneRol
+            }}
+        >
+
+            {children}
+
+        </AutorizacionesContext.Provider>
+    );
+};
+
+
+export default AutorizacionesProvider;

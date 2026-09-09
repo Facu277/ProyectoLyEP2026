@@ -4,6 +4,7 @@ import {
 } from "react";
 
 import {
+    Navigate,
     useNavigate,
     useParams
 } from "react-router-dom";
@@ -13,6 +14,9 @@ import FormularioCliente
 
 import clienteService
     from "../services/clientesService.js";
+
+import useAutorizaciones
+    from "../hooks/useAutorizaciones.js";
 
 
 // ==========================================
@@ -32,9 +36,47 @@ const ClienteFormPage = () => {
         useParams();
 
 
-    // Si existe id, estamos editando.
+    /*
+        Si existe un ID:
+
+        /clientes/editar/5
+        → EDICIÓN
+
+        Si no existe:
+
+        /clientes/nuevo
+        → CREACIÓN
+    */
+
     const esEdicion =
         Boolean(id);
+
+
+    // ======================================
+    // ADMINISTRADOR EN SESIÓN
+    // ======================================
+
+    const { admin } =
+        useAutorizaciones();
+
+
+    // ======================================
+    // PERMISOS
+    // ======================================
+
+    /*
+        GERENTE y SOPORTE pueden editar.
+
+        La creación NO requiere administrador,
+        porque un visitante puede registrarse
+        como cliente.
+    */
+
+    const puedeEditarClientes =
+        ["GERENTE", "SOPORTE"]
+            .includes(
+                admin?.sector
+            );
 
 
     // ======================================
@@ -47,211 +89,361 @@ const ClienteFormPage = () => {
     const [cargando, setCargando] =
         useState(false);
 
-    const [cargandoCliente, setCargandoCliente] =
+    const [
+        cargandoCliente,
+        setCargandoCliente
+    ] =
         useState(esEdicion);
 
-    const [mensajeError, setMensajeError] =
+    const [
+        mensajeError,
+        setMensajeError
+    ] =
         useState("");
+
+    const [
+        registroExitoso,
+        setRegistroExitoso
+    ] =
+        useState(false);
 
 
     // ======================================
-    // CARGAR CLIENTE EN EDICIÓN
+    // CARGAR CLIENTE PARA EDICIÓN
     // ======================================
 
     useEffect(() => {
 
+        // En creación no necesitamos
+        // buscar ningún cliente.
         if (!esEdicion) {
 
             return;
         }
 
 
-        const cargarCliente = async () => {
+        /*
+            Si estamos editando pero no existe
+            un administrador autorizado,
+            tampoco consultamos los datos.
+        */
 
-            try {
+        if (!puedeEditarClientes) {
 
-                setCargandoCliente(true);
-
-                setMensajeError("");
-
-
-                const clienteEncontrado =
-                    await clienteService
-                        .obtenerClientePorId(id);
+            return;
+        }
 
 
-                if (!clienteEncontrado) {
+        const cargarCliente =
+            async () => {
 
-                    setMensajeError(
-                        "No se encontró el cliente."
+                try {
+
+                    setCargandoCliente(true);
+
+                    setMensajeError("");
+
+
+                    // ==================================
+                    // BUSCAR CLIENTE POR ID
+                    // ==================================
+
+                    const clienteEncontrado =
+                        await clienteService
+                            .obtenerClientePorId(
+                                id
+                            );
+
+
+                    // ==================================
+                    // CLIENTE NO ENCONTRADO
+                    // ==================================
+
+                    if (!clienteEncontrado) {
+
+                        setMensajeError(
+                            "No se encontró el cliente."
+                        );
+
+                        return;
+                    }
+
+
+                    // ==================================
+                    // CLIENTE INACTIVO
+                    // ==================================
+
+                    if (
+                        clienteEncontrado
+                            .is_active !== true
+                    ) {
+
+                        setMensajeError(
+                            "El cliente se encuentra deshabilitado."
+                        );
+
+                        return;
+                    }
+
+
+                    setCliente(
+                        clienteEncontrado
                     );
 
-                    return;
+
+                } catch (error) {
+
+                    console.error(
+                        "Error al cargar cliente:",
+                        error
+                    );
+
+
+                    setMensajeError(
+                        "No se pudo cargar el cliente."
+                    );
+
+
+                } finally {
+
+                    setCargandoCliente(
+                        false
+                    );
                 }
-
-
-                setCliente(
-                    clienteEncontrado
-                );
-
-
-            } catch (error) {
-
-                console.error(
-                    "Error al cargar cliente:",
-                    error
-                );
-
-                setMensajeError(
-                    "No se pudo cargar el cliente."
-                );
-
-            } finally {
-
-                setCargandoCliente(false);
-            }
-        };
+            };
 
 
         cargarCliente();
 
-    }, [id, esEdicion]);
+    }, [
+        id,
+        esEdicion,
+        puedeEditarClientes
+    ]);
 
 
     // ======================================
     // GUARDAR CLIENTE
     // ======================================
 
-    const guardarCliente = async (
-        datosCliente
-    ) => {
-
-        try {
-
-            setCargando(true);
-
-            setMensajeError("");
-
-
-            // ==================================
-            // EDITAR
-            // ==================================
-
-            if (esEdicion) {
-
-                const actualizado =
-                    await clienteService
-                        .actualizarCliente(
-                            id,
-                            datosCliente
-                        );
-
-
-                console.log(
-                    "CLIENTE ACTUALIZADO:"
-                );
-
-                console.table([
-                    actualizado
-                ]);
-
-
-            // ==================================
-            // CREAR
-            // ==================================
-
-            } else {
-
-                const creado =
-                    await clienteService
-                        .crearCliente(
-                            datosCliente
-                        );
-
-
-                console.log(
-                    "CLIENTE CREADO:"
-                );
-
-                console.table([
-                    creado
-                ]);
-            }
-
-
-            // ==================================
-            // LISTA ACTUALIZADA
-            // ==================================
-
-            const clientesActualizados =
-                await clienteService
-                    .obtenerClientes();
-
-
-            console.log(
-                "LISTA ACTUALIZADA DE CLIENTES:"
-            );
-
-            console.table(
-                clientesActualizados
-            );
-
-
-            // ==================================
-            // REDIRECCIÓN
-            // ==================================
-
-            navigate(
-                "/clientes"
-            );
-
-
-        } catch (error) {
+    const guardarCliente =
+        async (datosCliente) => {
 
             /*
-                Los errores de validación deben
-                volver al FormularioCliente para
-                mostrar cada campo.
+                IMPORTANTE:
 
-                Por eso los relanzamos.
+                La creación es pública.
+
+                Solamente verificamos permisos
+                cuando estamos EDITANDO.
             */
 
-            if (error.validationErrors) {
+            if (
+                esEdicion &&
+                !puedeEditarClientes
+            ) {
 
-                throw error;
+                setMensajeError(
+                    "No tenés permisos para editar clientes."
+                );
+
+                return;
             }
 
 
-            console.error(
-                "Error al guardar cliente:",
-                error
-            );
+            try {
+
+                setCargando(true);
+
+                setMensajeError("");
 
 
-            setMensajeError(
-                "No se pudo guardar el cliente."
-            );
+                // ==================================
+                // EDITAR CLIENTE
+                // ==================================
 
-            throw error;
+                if (esEdicion) {
+
+                    /*
+                        Durante la edición NO se
+                        modifica la contraseña.
+
+                        FormularioCliente no envía
+                        password y clientesService
+                        conserva el existente.
+                    */
+
+                    const actualizado =
+                        await clienteService
+                            .actualizarCliente(
+                                id,
+                                datosCliente
+                            );
 
 
-        } finally {
+                    console.log(
+                        "CLIENTE ACTUALIZADO:"
+                    );
 
-            setCargando(false);
-        }
-    };
+                    console.table([
+                        actualizado
+                    ]);
+
+
+                    // Un administrador vuelve
+                    // al listado.
+                    navigate(
+                        "/clientes"
+                    );
+
+
+                // ==================================
+                // CREAR CLIENTE
+                // ==================================
+
+                } else {
+
+                    const creado =
+                        await clienteService
+                            .crearCliente(
+                                datosCliente
+                            );
+
+
+                    console.log(
+                        "CLIENTE CREADO:"
+                    );
+
+                    console.table([
+                        creado
+                    ]);
+
+
+                    /*
+                        Si quien creó el cliente
+                        es un administrador,
+                        volvemos al listado.
+
+                        Si es un visitante,
+                        mostramos una confirmación.
+                    */
+
+                    if (admin) {
+
+                        navigate(
+                            "/clientes"
+                        );
+
+                    } else {
+
+                        setRegistroExitoso(
+                            true
+                        );
+                    }
+                }
+
+
+            } catch (error) {
+
+                /*
+                    Los errores de validación
+                    vuelven al formulario para
+                    mostrarse debajo del campo.
+                */
+
+                if (
+                    error.validationErrors
+                ) {
+
+                    throw error;
+                }
+
+
+                console.error(
+                    "Error al guardar cliente:",
+                    error
+                );
+
+
+                setMensajeError(
+                    "No se pudo guardar el cliente."
+                );
+
+
+                throw error;
+
+
+            } finally {
+
+                setCargando(false);
+            }
+        };
 
 
     // ======================================
-    // CARGANDO CLIENTE
+    // PROTEGER SOLAMENTE LA EDICIÓN
+    // ======================================
+
+    /*
+        /clientes/nuevo
+        → público
+
+        /clientes/editar/:id
+        → GERENTE o SOPORTE
+    */
+
+    if (
+        esEdicion &&
+        !puedeEditarClientes
+    ) {
+
+        return (
+
+            <Navigate
+                to="/login"
+                replace
+            />
+        );
+    }
+
+
+    // ======================================
+    // CARGANDO
     // ======================================
 
     if (cargandoCliente) {
 
         return (
+
             <p>
                 Cargando cliente...
             </p>
+        );
+    }
+
+
+    // ======================================
+    // REGISTRO PÚBLICO EXITOSO
+    // ======================================
+
+    if (
+        !esEdicion &&
+        registroExitoso
+    ) {
+
+        return (
+
+            <main>
+
+                <h1>
+                    Registro completado
+                </h1>
+
+                <p>
+                    El cliente fue creado correctamente.
+                </p>
+
+            </main>
         );
     }
 
@@ -267,29 +459,34 @@ const ClienteFormPage = () => {
 
         return (
 
-            <div>
+            <main>
 
                 <h1>
                     Cliente no encontrado
                 </h1>
 
+
                 {mensajeError && (
 
-                    <p>
+                    <p className="mensaje-error">
                         {mensajeError}
                     </p>
                 )}
 
+
                 <button
                     type="button"
+
                     onClick={() =>
-                        navigate("/clientes")
+                        navigate(
+                            "/clientes"
+                        )
                     }
                 >
                     Volver
                 </button>
 
-            </div>
+            </main>
         );
     }
 
@@ -315,7 +512,7 @@ const ClienteFormPage = () => {
 
             {mensajeError && (
 
-                <p>
+                <p className="mensaje-error">
                     {mensajeError}
                 </p>
             )}
@@ -323,7 +520,9 @@ const ClienteFormPage = () => {
 
             <FormularioCliente
 
-                cliente={cliente}
+                cliente={
+                    cliente
+                }
 
                 onSubmit={
                     guardarCliente

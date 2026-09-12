@@ -34,11 +34,13 @@ const AutorizacionesProvider = ({
 
     useEffect(() => {
 
-        if (admin) {
+        if (admin && admin.id) {
 
             localStorage.setItem(
                 "admin",
-                JSON.stringify(admin)
+                JSON.stringify({
+                    id: admin.id
+                })
             );
 
         } else {

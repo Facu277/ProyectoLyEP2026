@@ -75,6 +75,39 @@ const AutorizacionesProvider = ({
 
 
     // ==========================================
+    // INICIAR SESIÓN
+    // ==========================================
+
+    /*
+        El Context solo acepta iniciar sesión con un id válido.
+        El administrador se busca en la lista canónica, garantizando
+        que el sector y los permisos no provengan de la UI.
+    */
+    const iniciarSesion = (id) => {
+
+        const adminId =
+            typeof id === "object" ? id?.id : id;
+
+        const adminEncontrado =
+            administradores.find(
+                adm => adm.id === Number(adminId)
+            );
+
+        if (!adminEncontrado || !adminEncontrado.is_active) {
+
+            setAdmin(null);
+            return false;
+        }
+
+        setAdmin(
+            adminEncontrado.toJSON()
+        );
+
+        return true;
+    };
+
+
+    // ==========================================
     // CERRAR SESIÓN
     // ==========================================
 
@@ -134,7 +167,8 @@ const AutorizacionesProvider = ({
         <AutorizacionesContext.Provider
             value={{
                 admin,
-                setAdmin,
+                iniciarSesion,
+                setAdmin: iniciarSesion,
                 cerrarSesion,
                 rol,
                 esGerencia,

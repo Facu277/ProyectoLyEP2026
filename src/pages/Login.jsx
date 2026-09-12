@@ -37,9 +37,9 @@ const Login = () => {
     // CONTEXTO DE AUTORIZACIONES
     // ======================================
 
-    // setAdmin guarda el administrador
-    // autenticado dentro de la sesión.
-    const { setAdmin } =
+    // iniciarSesion establece la sesión del administrador
+    // en base a su id y la lista canónica.
+    const { iniciarSesion } =
         useAutorizaciones();
 
 
@@ -225,41 +225,15 @@ const Login = () => {
         /*
             IMPORTANTE:
 
-            La contraseña NO se guarda dentro
-            de la sesión.
+            Ya no se arma un objeto a mano con
+            el sector enviado por la UI.
 
-            Solamente guardamos información
-            necesaria para:
-
-            - identificar al administrador
-            - mostrar sus datos
-            - controlar permisos
-            - verificar su sector
+            El Context solo acepta iniciar sesión
+            con un id válido, resolviendo los
+            permisos contra la lista canónica.
         */
 
-        setAdmin({
-
-            id:
-                usuario.id,
-
-            name:
-                usuario.name,
-
-            email:
-                usuario.email,
-
-            username:
-                usuario.username,
-
-            tipo:
-                usuario.tipo,
-
-            sector:
-                usuario.sector,
-
-            is_active:
-                usuario.is_active
-        });
+        iniciarSesion(usuario.id);
 
 
         // ==================================

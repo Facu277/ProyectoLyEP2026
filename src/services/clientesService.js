@@ -4,6 +4,9 @@ import {
     validarCliente
 } from "../../shared/validaciones.js";
 
+import leerJSONLocalStorage
+    from "../utils/leerJSONLocalStorage.js";
+
 
 const URL = "https://fakestoreapi.com/users";
 
@@ -76,31 +79,10 @@ const guardarClientes = (clientes) => {
 
 const leerClientesLocal = () => {
 
-    const clientesGuardados =
-        localStorage.getItem(STORAGE_KEY);
-
-
-    // Si todavía no hay clientes guardados,
-    // devolvemos una lista vacía.
-    if (!clientesGuardados) {
-
-        return [];
-    }
-
-
-    try {
-
-        return JSON.parse(clientesGuardados);
-
-    } catch (error) {
-
-        console.error(
-            "Error al leer los clientes guardados:",
-            error
-        );
-
-        return [];
-    }
+    return leerJSONLocalStorage(
+        STORAGE_KEY,
+        []
+    );
 };
 
 

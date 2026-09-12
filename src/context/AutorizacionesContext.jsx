@@ -4,6 +4,9 @@ import {
     useState
 } from "react";
 
+import leerJSONLocalStorage
+    from "../utils/leerJSONLocalStorage.js";
+
 export const AutorizacionesContext =
     createContext(null);
 
@@ -18,33 +21,10 @@ const AutorizacionesProvider = ({
 
     const [admin, setAdmin] = useState(() => {
 
-        try {
-
-            const adminGuardado =
-                localStorage.getItem("admin");
-
-
-            if (adminGuardado) {
-
-                return JSON.parse(
-                    adminGuardado
-                );
-            }
-
-        } catch (error) {
-
-            console.error(
-                "Error al leer el administrador guardado:",
-                error
-            );
-
-            localStorage.removeItem(
-                "admin"
-            );
-        }
-
-
-        return null;
+        return leerJSONLocalStorage(
+            "admin",
+            null
+        );
     });
 
 

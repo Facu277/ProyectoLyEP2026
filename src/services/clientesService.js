@@ -172,7 +172,31 @@ const obtenerClientePorId = async (id) => {
 // CREAR CLIENTE
 // ==========================================
 
-const crearCliente = async (cliente) => {
+const crearCliente = async (cliente, adminSesion) => {
+
+    // ======================================
+    // AUTORIZACIÓN: GERENTE O SOPORTE
+    // ======================================
+
+    /*
+        Se valida que el administrador en sesión exista,
+        se encuentre activo y pertenezca a GERENTE o SOPORTE.
+        Cualquier sector enviado por la UI se ignora.
+    */
+    const idAdmin =
+        typeof adminSesion === "object" ? adminSesion?.id : adminSesion;
+
+    const admin =
+        administradores.find(
+            a => a.id === Number(idAdmin)
+        );
+
+    if (!admin || !admin.is_active || !["GERENTE", "SOPORTE"].includes(admin.sector)) {
+
+        throw new Error(
+            "Operación no permitida: Solo un administrador con rol GERENTE o SOPORTE puede crear clientes."
+        );
+    }
 
     // ======================================
     // VALIDAR DATOS
@@ -308,8 +332,33 @@ const crearCliente = async (cliente) => {
 
 const actualizarCliente = async (
     id,
-    datosActualizados
+    datosActualizados,
+    adminSesion
 ) => {
+
+    // ======================================
+    // AUTORIZACIÓN: GERENTE O SOPORTE
+    // ======================================
+
+    /*
+        Se valida que el administrador en sesión exista,
+        se encuentre activo y pertenezca a GERENTE o SOPORTE.
+        Cualquier sector enviado por la UI se ignora.
+    */
+    const idAdmin =
+        typeof adminSesion === "object" ? adminSesion?.id : adminSesion;
+
+    const admin =
+        administradores.find(
+            a => a.id === Number(idAdmin)
+        );
+
+    if (!admin || !admin.is_active || !["GERENTE", "SOPORTE"].includes(admin.sector)) {
+
+        throw new Error(
+            "Operación no permitida: Solo un administrador con rol GERENTE o SOPORTE puede actualizar clientes."
+        );
+    }
 
     // ======================================
     // OBTENER CLIENTES

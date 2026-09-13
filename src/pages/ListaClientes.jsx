@@ -152,10 +152,18 @@ const ListaClientes = () => {
         async (id) => {
 
             // ==================================
-            // VERIFICAR PERMISO
+            // VERIFICAR PERMISO (DEFENSA EN UI)
             // ==================================
 
-            if (!puedeEliminar) {
+            /*
+                No alcanza con ocultar el botón en la interfaz.
+                Si el usuario fuerza la acción sin ser GERENTE, se bloquea la ejecución.
+            */
+            if (!esGerencia) {
+
+                setError(
+                    "Operación no permitida: Solo el rol GERENTE puede deshabilitar clientes."
+                );
 
                 return;
             }
@@ -211,7 +219,7 @@ const ListaClientes = () => {
 
 
                 setError(
-                    "No se pudo deshabilitar el cliente."
+                    error.message || "No se pudo deshabilitar el cliente."
                 );
             }
         };

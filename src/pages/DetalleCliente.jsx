@@ -172,15 +172,18 @@ const DetalleCliente = () => {
         async () => {
 
             // ==================================
-            // VERIFICAR PERMISO
+            // VERIFICAR PERMISO (DEFENSA EN UI)
             // ==================================
 
             /*
-                Solamente GERENTE puede realizar
-                la baja lógica de un cliente.
+                No alcanza con que el botón esté oculto en la interfaz.
+                Si el usuario fuerza la acción sin ser GERENTE, se bloquea la ejecución.
             */
-
             if (!esGerencia) {
+
+                setError(
+                    "Operación no permitida: Solo el rol GERENTE puede deshabilitar clientes."
+                );
 
                 return;
             }
@@ -250,8 +253,8 @@ const DetalleCliente = () => {
                 );
 
 
-                setMensaje(
-                    "No se pudo deshabilitar el cliente."
+                setError(
+                    error.message || "No se pudo deshabilitar el cliente."
                 );
             }
         };

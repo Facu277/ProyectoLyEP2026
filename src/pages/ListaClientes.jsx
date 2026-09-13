@@ -191,7 +191,7 @@ const ListaClientes = () => {
             try {
 
                 await clienteService
-                    .eliminarCliente(id);
+                    .eliminarCliente(id, admin?.id);
 
 
                 /*

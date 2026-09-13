@@ -220,7 +220,7 @@ const DetalleCliente = () => {
                 */
 
                 await clienteService
-                    .eliminarCliente(id);
+                    .eliminarCliente(id, admin?.id);
 
 
                 setMensaje(

@@ -7,6 +7,10 @@ import {
 import leerJSONLocalStorage
     from "../utils/leerJSONLocalStorage.js";
 
+import {
+    administradores
+} from "./administradoresInicializados.js";
+
 
 const URL = "https://fakestoreapi.com/users";
 
@@ -517,7 +521,32 @@ const actualizarCliente = async (
 // DESHABILITAR CLIENTE
 // ==========================================
 
-const eliminarCliente = async (id) => {
+const eliminarCliente = async (id, adminSesion) => {
+
+    // ======================================
+    // AUTORIZACIÓN: VALIDAR ROL GERENTE
+    // ======================================
+
+    /*
+        Se recibe el id del admin en sesión.
+        Se busca en la lista canónica de administradores
+        y se rechaza si no es GERENTE.
+        Se ignora cualquier sector que mande la página.
+    */
+    const idAdmin =
+        typeof adminSesion === "object" ? adminSesion?.id : adminSesion;
+
+    const admin =
+        administradores.find(
+            a => a.id === Number(idAdmin)
+        );
+
+    if (!admin || !admin.is_active || admin.sector !== "GERENTE") {
+
+        throw new Error(
+            "Operación no permitida: Solo un administrador con rol GERENTE puede deshabilitar clientes."
+        );
+    }
 
     // ======================================
     // OBTENER CLIENTES

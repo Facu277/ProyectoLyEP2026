@@ -1,49 +1,75 @@
-const usuarios = [
-  {
-    email: 'antonella@gmail.com',
-    password: 'Admin123',
-    nombre: 'Antonella',
-    sector: 'Soporte'
-  },
-  {
-    email: 'jimena@gmail.com',
-    password: 'Admin123',
-    nombre: 'Jimena',
-    sector: 'Gerencia'
-  },
-  {
-    email: 'maia@gmail.com',
-    password: 'Admin123',
-    nombre: 'Maia',
-    sector: 'Gerencia'
-  },
-  {
-    email: 'abril@gmail.com',
-    password: 'Admin123',
-    nombre: 'Abril',
-    sector: 'Soporte'
-  },
-  {
-    email: 'guadalupe@gmail.com',
-    password: 'Admin123',
-    nombre: 'Guadalupe',
-    sector: 'Soporte'
-  },
-  {
-    email: 'lourdes@gmail.com',
-    password: 'Admin123',
-    nombre: 'Lourdes',
-    sector: 'Gerencia'
-  }
-]
-const login = (email, password, sector) => {
-  return usuarios.find(
-    usuario =>
-      usuario.email === email &&
-      usuario.password === password &&
-      usuario.sector === sector
-  )
-}
+import {
+    administradores
+} from "./administradoresInicializados.js";
+
+
+// ==========================================
+// SERVICIO DE AUTORIZACIONES
+// ==========================================
+
+const login = (
+    email,
+    password
+) => {
+
+    // ======================================
+    // BUSCAR ADMINISTRADOR
+    // ======================================
+
+    /*
+        Buscamos utilizando:
+
+        - email
+        - password
+
+        El sector NO se solicita al usuario.
+
+        GERENTE o SOPORTE se obtiene
+        directamente del administrador.
+    */
+
+    const administrador =
+        administradores.find(
+            admin =>
+
+                admin.email.toLowerCase() ===
+                email.toLowerCase() &&
+
+                admin.passwordForStorage() ===
+                password
+        );
+
+
+    // ======================================
+    // ADMINISTRADOR NO ENCONTRADO
+    // ======================================
+
+    if (!administrador) {
+
+        return null;
+    }
+
+
+    // ======================================
+    // DEVOLVER DATOS SEGUROS
+    // ======================================
+
+    /*
+        toJSON() no devuelve password.
+
+        Esto evita que la contraseña pase
+        al Context o quede guardada en
+        localStorage como parte de la sesión.
+    */
+
+    return administrador.toJSON();
+};
+
+
+// ==========================================
+// EXPORTAR SERVICE
+// ==========================================
+
 export default {
-  login
-}
+    login
+};

@@ -1,16 +1,29 @@
-import { StrictMode } from 'react'
-import { createRoot } from 'react-dom/client'
-import { BrowserRouter } from 'react-router-dom'
-import 'bootstrap/dist/css/bootstrap.min.css'
-import App from './App.jsx'
-import AutorizacionesProvider from './context/AutorizacionesContext'
+import { StrictMode } from "react";
+import { createRoot } from "react-dom/client";
+import { BrowserRouter } from "react-router-dom";
 
-createRoot(document.getElementById('root')).render(
-  <StrictMode>
-    <BrowserRouter>
-      <AutorizacionesProvider>
-        <App />
-      </AutorizacionesProvider>
-    </BrowserRouter>
-  </StrictMode>
-)
+import AutorizacionesProvider
+    from "./context/AutorizacionesContext.jsx";
+
+import AppRoutes
+    from "./routes/routes.jsx";
+
+
+createRoot(
+    document.getElementById("root")
+).render(
+
+    <StrictMode>
+
+        <BrowserRouter>
+
+            <AutorizacionesProvider>
+
+                <AppRoutes />
+
+            </AutorizacionesProvider>
+
+        </BrowserRouter>
+
+    </StrictMode>
+);

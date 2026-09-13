@@ -26,8 +26,10 @@ const Dashboard = () => {
     // ADMINISTRADOR EN SESIÓN
     // ======================================
 
-    const { admin } =
-        useAutorizaciones();
+    const {
+        admin,
+        esGerencia
+    } = useAutorizaciones();
 
 
     // ======================================
@@ -232,7 +234,7 @@ const Dashboard = () => {
                         {" "}
 
                         {
-                            admin?.sector === "GERENTE"
+                            esGerencia
                                 ? "Gerencia"
                                 : "Soporte"
                         }

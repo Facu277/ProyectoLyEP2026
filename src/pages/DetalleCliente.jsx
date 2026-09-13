@@ -347,7 +347,7 @@ const DetalleCliente = () => {
                     {" "}
 
                     {
-                        admin?.sector === "GERENTE"
+                        esGerencia
                             ? "Gerencia"
                             : "Soporte"
                     }

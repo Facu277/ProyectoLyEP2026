@@ -118,9 +118,13 @@ const AutorizacionesProvider = ({
 
 
     // ==========================================
-    // ROL / SECTOR
+    // ROL / SECTOR (DERIVADOS DE SESIÓN RESUELTA)
     // ==========================================
 
+    /*
+        El rol y los permisos se derivan exclusivamente del administrador
+        reconstruido desde la lista canónica, nunca del storage.
+    */
     const rol =
         admin?.sector ?? null;
 
@@ -142,7 +146,7 @@ const AutorizacionesProvider = ({
         rolesPermitidos = []
     ) => {
 
-        if (!admin) {
+        if (!admin || !admin.sector) {
 
             return false;
         }

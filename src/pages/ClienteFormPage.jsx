@@ -56,12 +56,14 @@ const ClienteFormPage = () => {
     // ADMINISTRADOR EN SESIÓN
     // ======================================
 
-    const { admin } =
-        useAutorizaciones();
+    const {
+        admin,
+        tieneRol
+    } = useAutorizaciones();
 
 
     // ======================================
-    // PERMISOS
+    // PERMISOS (DERIVADOS DE SESIÓN RESUELTA)
     // ======================================
 
     /*
@@ -73,10 +75,7 @@ const ClienteFormPage = () => {
     */
 
     const puedeEditarClientes =
-        ["GERENTE", "SOPORTE"]
-            .includes(
-                admin?.sector
-            );
+        tieneRol(["GERENTE", "SOPORTE"]);
 
 
     // ======================================

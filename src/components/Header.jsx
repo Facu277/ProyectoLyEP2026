@@ -20,7 +20,7 @@ const Header = () => {
                 admin && (
                     <div className="usuario-header">
                        <p>
-                         {admin.nombre} - {admin.sector}
+                         {(admin.name ? `${admin.name.firstname} ${admin.name.lastname}` : (admin.nombre || admin.username))} - {admin.sector}
                      </p>
                         <Button className="btn-header"
                          onClick={manejarCerrarSesion}

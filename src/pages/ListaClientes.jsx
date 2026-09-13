@@ -29,12 +29,15 @@ const ListaClientes = () => {
     // ADMINISTRADOR EN SESIÓN
     // ======================================
 
-    const { admin } =
-        useAutorizaciones();
+    const {
+        admin,
+        esGerencia,
+        tieneRol
+    } = useAutorizaciones();
 
 
     // ======================================
-    // PERMISOS
+    // PERMISOS (DERIVADOS DE SESIÓN RESUELTA)
     // ======================================
 
     /*
@@ -49,14 +52,10 @@ const ListaClientes = () => {
     */
 
     const puedeEditar =
-        ["GERENTE", "SOPORTE"]
-            .includes(
-                admin?.sector
-            );
-
+        tieneRol(["GERENTE", "SOPORTE"]);
 
     const puedeEliminar =
-        admin?.sector === "GERENTE";
+        esGerencia;
 
 
     // ======================================

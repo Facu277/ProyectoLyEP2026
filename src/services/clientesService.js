@@ -4,6 +4,13 @@ import {
     validarCliente
 } from "../../shared/validaciones.js";
 
+import leerJSONLocalStorage
+    from "../utils/leerJSONLocalStorage.js";
+
+import {
+    administradores
+} from "./administradoresInicializados.js";
+
 
 const URL = "https://fakestoreapi.com/users";
 
@@ -76,31 +83,10 @@ const guardarClientes = (clientes) => {
 
 const leerClientesLocal = () => {
 
-    const clientesGuardados =
-        localStorage.getItem(STORAGE_KEY);
-
-
-    // Si todavía no hay clientes guardados,
-    // devolvemos una lista vacía.
-    if (!clientesGuardados) {
-
-        return [];
-    }
-
-
-    try {
-
-        return JSON.parse(clientesGuardados);
-
-    } catch (error) {
-
-        console.error(
-            "Error al leer los clientes guardados:",
-            error
-        );
-
-        return [];
-    }
+    return leerJSONLocalStorage(
+        STORAGE_KEY,
+        []
+    );
 };
 
 
@@ -186,7 +172,31 @@ const obtenerClientePorId = async (id) => {
 // CREAR CLIENTE
 // ==========================================
 
-const crearCliente = async (cliente) => {
+const crearCliente = async (cliente, adminSesion) => {
+
+    // ======================================
+    // AUTORIZACIÓN: GERENTE O SOPORTE
+    // ======================================
+
+    /*
+        Se valida que el administrador en sesión exista,
+        se encuentre activo y pertenezca a GERENTE o SOPORTE.
+        Cualquier sector enviado por la UI se ignora.
+    */
+    const idAdmin =
+        typeof adminSesion === "object" ? adminSesion?.id : adminSesion;
+
+    const admin =
+        administradores.find(
+            a => a.id === Number(idAdmin)
+        );
+
+    if (!admin || !admin.is_active || !["GERENTE", "SOPORTE"].includes(admin.sector)) {
+
+        throw new Error(
+            "Operación no permitida: Solo un administrador con rol GERENTE o SOPORTE puede crear clientes."
+        );
+    }
 
     // ======================================
     // VALIDAR DATOS
@@ -322,8 +332,33 @@ const crearCliente = async (cliente) => {
 
 const actualizarCliente = async (
     id,
-    datosActualizados
+    datosActualizados,
+    adminSesion
 ) => {
+
+    // ======================================
+    // AUTORIZACIÓN: GERENTE O SOPORTE
+    // ======================================
+
+    /*
+        Se valida que el administrador en sesión exista,
+        se encuentre activo y pertenezca a GERENTE o SOPORTE.
+        Cualquier sector enviado por la UI se ignora.
+    */
+    const idAdmin =
+        typeof adminSesion === "object" ? adminSesion?.id : adminSesion;
+
+    const admin =
+        administradores.find(
+            a => a.id === Number(idAdmin)
+        );
+
+    if (!admin || !admin.is_active || !["GERENTE", "SOPORTE"].includes(admin.sector)) {
+
+        throw new Error(
+            "Operación no permitida: Solo un administrador con rol GERENTE o SOPORTE puede actualizar clientes."
+        );
+    }
 
     // ======================================
     // OBTENER CLIENTES
@@ -535,7 +570,32 @@ const actualizarCliente = async (
 // DESHABILITAR CLIENTE
 // ==========================================
 
-const eliminarCliente = async (id) => {
+const eliminarCliente = async (id, adminSesion) => {
+
+    // ======================================
+    // AUTORIZACIÓN: VALIDAR ROL GERENTE
+    // ======================================
+
+    /*
+        Se recibe el id del admin en sesión.
+        Se busca en la lista canónica de administradores
+        y se rechaza si no es GERENTE.
+        Se ignora cualquier sector que mande la página.
+    */
+    const idAdmin =
+        typeof adminSesion === "object" ? adminSesion?.id : adminSesion;
+
+    const admin =
+        administradores.find(
+            a => a.id === Number(idAdmin)
+        );
+
+    if (!admin || !admin.is_active || admin.sector !== "GERENTE") {
+
+        throw new Error(
+            "Operación no permitida: Solo un administrador con rol GERENTE puede deshabilitar clientes."
+        );
+    }
 
     // ======================================
     // OBTENER CLIENTES

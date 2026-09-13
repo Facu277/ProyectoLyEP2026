@@ -4,6 +4,12 @@ import {
     useState
 } from "react";
 
+import leerJSONLocalStorage
+    from "../utils/leerJSONLocalStorage.js";
+import {
+    administradores
+} from "../services/administradoresInicializados.js";
+
 export const AutorizacionesContext =
     createContext(null);
 
@@ -18,33 +24,28 @@ const AutorizacionesProvider = ({
 
     const [admin, setAdmin] = useState(() => {
 
-        try {
+        const sesionGuardada = leerJSONLocalStorage(
+            "admin",
+            null
+        );
 
-            const adminGuardado =
-                localStorage.getItem("admin");
+        if (!sesionGuardada || !sesionGuardada.id) {
 
-
-            if (adminGuardado) {
-
-                return JSON.parse(
-                    adminGuardado
-                );
-            }
-
-        } catch (error) {
-
-            console.error(
-                "Error al leer el administrador guardado:",
-                error
-            );
-
-            localStorage.removeItem(
-                "admin"
-            );
+            return null;
         }
 
+        const adminEncontrado = administradores.find(
+            adm => adm.id === Number(sesionGuardada.id)
+        );
 
-        return null;
+        // Si no existe o está inactivo → sesión null y se limpia la clave.
+        if (!adminEncontrado || !adminEncontrado.is_active) {
+
+            localStorage.removeItem("admin");
+            return null;
+        }
+
+        return adminEncontrado.toJSON();
     });
 
 
@@ -54,11 +55,13 @@ const AutorizacionesProvider = ({
 
     useEffect(() => {
 
-        if (admin) {
+        if (admin && admin.id) {
 
             localStorage.setItem(
                 "admin",
-                JSON.stringify(admin)
+                JSON.stringify({
+                    id: admin.id
+                })
             );
 
         } else {
@@ -72,6 +75,39 @@ const AutorizacionesProvider = ({
 
 
     // ==========================================
+    // INICIAR SESIÓN
+    // ==========================================
+
+    /*
+        El Context solo acepta iniciar sesión con un id válido.
+        El administrador se busca en la lista canónica, garantizando
+        que el sector y los permisos no provengan de la UI.
+    */
+    const iniciarSesion = (id) => {
+
+        const adminId =
+            typeof id === "object" ? id?.id : id;
+
+        const adminEncontrado =
+            administradores.find(
+                adm => adm.id === Number(adminId)
+            );
+
+        if (!adminEncontrado || !adminEncontrado.is_active) {
+
+            setAdmin(null);
+            return false;
+        }
+
+        setAdmin(
+            adminEncontrado.toJSON()
+        );
+
+        return true;
+    };
+
+
+    // ==========================================
     // CERRAR SESIÓN
     // ==========================================
 
@@ -82,9 +118,13 @@ const AutorizacionesProvider = ({
 
 
     // ==========================================
-    // ROL / SECTOR
+    // ROL / SECTOR (DERIVADOS DE SESIÓN RESUELTA)
     // ==========================================
 
+    /*
+        El rol y los permisos se derivan exclusivamente del administrador
+        reconstruido desde la lista canónica, nunca del storage.
+    */
     const rol =
         admin?.sector ?? null;
 
@@ -106,7 +146,7 @@ const AutorizacionesProvider = ({
         rolesPermitidos = []
     ) => {
 
-        if (!admin) {
+        if (!admin || !admin.sector) {
 
             return false;
         }
@@ -131,7 +171,8 @@ const AutorizacionesProvider = ({
         <AutorizacionesContext.Provider
             value={{
                 admin,
-                setAdmin,
+                iniciarSesion,
+                setAdmin: iniciarSesion,
                 cerrarSesion,
                 rol,
                 esGerencia,

@@ -29,12 +29,15 @@ const ListaClientes = () => {
     // ADMINISTRADOR EN SESIÓN
     // ======================================
 
-    const { admin } =
-        useAutorizaciones();
+    const {
+        admin,
+        esGerencia,
+        tieneRol
+    } = useAutorizaciones();
 
 
     // ======================================
-    // PERMISOS
+    // PERMISOS (DERIVADOS DE SESIÓN RESUELTA)
     // ======================================
 
     /*
@@ -49,14 +52,10 @@ const ListaClientes = () => {
     */
 
     const puedeEditar =
-        ["GERENTE", "SOPORTE"]
-            .includes(
-                admin?.sector
-            );
-
+        tieneRol(["GERENTE", "SOPORTE"]);
 
     const puedeEliminar =
-        admin?.sector === "GERENTE";
+        esGerencia;
 
 
     // ======================================
@@ -153,10 +152,18 @@ const ListaClientes = () => {
         async (id) => {
 
             // ==================================
-            // VERIFICAR PERMISO
+            // VERIFICAR PERMISO (DEFENSA EN UI)
             // ==================================
 
-            if (!puedeEliminar) {
+            /*
+                No alcanza con ocultar el botón en la interfaz.
+                Si el usuario fuerza la acción sin ser GERENTE, se bloquea la ejecución.
+            */
+            if (!esGerencia) {
+
+                setError(
+                    "Operación no permitida: Solo el rol GERENTE puede deshabilitar clientes."
+                );
 
                 return;
             }
@@ -192,7 +199,7 @@ const ListaClientes = () => {
             try {
 
                 await clienteService
-                    .eliminarCliente(id);
+                    .eliminarCliente(id, admin?.id);
 
 
                 /*
@@ -212,7 +219,7 @@ const ListaClientes = () => {
 
 
                 setError(
-                    "No se pudo deshabilitar el cliente."
+                    error.message || "No se pudo deshabilitar el cliente."
                 );
             }
         };

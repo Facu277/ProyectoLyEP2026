@@ -56,12 +56,14 @@ const ClienteFormPage = () => {
     // ADMINISTRADOR EN SESIÓN
     // ======================================
 
-    const { admin } =
-        useAutorizaciones();
+    const {
+        admin,
+        tieneRol
+    } = useAutorizaciones();
 
 
     // ======================================
-    // PERMISOS
+    // PERMISOS (DERIVADOS DE SESIÓN RESUELTA)
     // ======================================
 
     /*
@@ -73,10 +75,7 @@ const ClienteFormPage = () => {
     */
 
     const puedeEditarClientes =
-        ["GERENTE", "SOPORTE"]
-            .includes(
-                admin?.sector
-            );
+        tieneRol(["GERENTE", "SOPORTE"]);
 
 
     // ======================================
@@ -277,7 +276,8 @@ const ClienteFormPage = () => {
                         await clienteService
                             .actualizarCliente(
                                 id,
-                                datosCliente
+                                datosCliente,
+                                admin?.id
                             );
 
 
@@ -306,7 +306,8 @@ const ClienteFormPage = () => {
                     const creado =
                         await clienteService
                             .crearCliente(
-                                datosCliente
+                                datosCliente,
+                                admin?.id
                             );
 
 
@@ -366,7 +367,7 @@ const ClienteFormPage = () => {
 
 
                 setMensajeError(
-                    "No se pudo guardar el cliente."
+                    error.message || "No se pudo guardar el cliente."
                 );
 
 
